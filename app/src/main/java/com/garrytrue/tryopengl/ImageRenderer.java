@@ -25,6 +25,7 @@ public class ImageRenderer extends GlRenderer {
         int texId = new TextureUtils().loadTexture();
         Log.d(TAG, "onCreate: TexId " + texId);
         Log.d(TAG, "onCreate: Texture Vertex " + Shaders.makeShader(Shaders.TEXTURE_VERTEX_SHADER, GLES20.GL_VERTEX_SHADER));
+        Log.d(TAG, "onCreate: Texture Fragment " + Shaders.makeShader(Shaders.TEXTURE_FRAGMENT_SHADER, GLES20.GL_FRAGMENT_SHADER));
 
     }
 

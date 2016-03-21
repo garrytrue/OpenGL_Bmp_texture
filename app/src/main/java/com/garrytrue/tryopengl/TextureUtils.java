@@ -21,9 +21,10 @@ import static android.opengl.GLES20.glTexParameteri;
  */
 public class TextureUtils {
     private static final String TAG = TextureUtils.class.getSimpleName();
-    final int[] textureId = new int[1];
 
-    public int loadTexture() {
+
+    public static int loadTexture() {
+        final int[] textureId = new int[1];
         glGenTextures(1, textureId, 0);
         if (textureId[0] == GL_FALSE) {
             Log.d(TAG, "loadTexture: Error ");
