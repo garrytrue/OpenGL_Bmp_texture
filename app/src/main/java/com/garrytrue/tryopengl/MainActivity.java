@@ -41,6 +41,7 @@ public class MainActivity extends AppCompatActivity {
     private View.OnTouchListener touchListener = new View.OnTouchListener() {
         @Override
         public boolean onTouch(View v, MotionEvent event) {
+            ((GLSurfaceView)v).requestRender();
             return true;
         }
     };
