@@ -9,19 +9,13 @@ import android.view.SurfaceView;
 import android.view.View;
 
 public class MainActivity extends AppCompatActivity {
-    private GLSurfaceView surfaceView;
+    private TouchableGLSurfaceView surfaceView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        surfaceView = (GLSurfaceView) findViewById(R.id.surfaceView);
-        if(hasOpenGLES2())
-        surfaceView.setEGLContextClientVersion(2);
-        surfaceView.setPreserveEGLContextOnPause(true);
-        surfaceView.setRenderer(new TextureRenderer());
-        surfaceView.setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
-        surfaceView.setOnTouchListener(touchListener);
+        surfaceView = (TouchableGLSurfaceView) findViewById(R.id.surfaceView);
     }
     private boolean hasOpenGLES2(){
         return ((ActivityManager) getSystemService(ACTIVITY_SERVICE)).getDeviceConfigurationInfo().reqGlEsVersion >= 0x20000;
@@ -38,11 +32,4 @@ public class MainActivity extends AppCompatActivity {
         surfaceView.onPause();
         super.onPause();
     }
-    private View.OnTouchListener touchListener = new View.OnTouchListener() {
-        @Override
-        public boolean onTouch(View v, MotionEvent event) {
-            ((GLSurfaceView)v).requestRender();
-            return true;
-        }
-    };
 }

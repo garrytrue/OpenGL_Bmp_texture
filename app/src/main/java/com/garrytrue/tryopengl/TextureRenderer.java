@@ -57,12 +57,15 @@ public class TextureRenderer implements GLSurfaceView.Renderer {
     private float[] mProjectionMatrix = new float[16];
     private float[] mViewMatrix = new float[16];
     private float[] mMatrix = new float[16];
+    private float[] originalModelMatrix = new float[16];
+
 
     private int texture;
 
 
     @Override
     public void onSurfaceCreated(GL10 arg0, EGLConfig arg1) {
+        Log.d(TAG, "onSurfaceCreated: ");
         glClearColor(1f, 1f, 1f, 1f);
         glEnable(GL_DEPTH_TEST);
 
@@ -75,6 +78,7 @@ public class TextureRenderer implements GLSurfaceView.Renderer {
 
     @Override
     public void onSurfaceChanged(GL10 arg0, int width, int height) {
+        Log.d(TAG, "onSurfaceChanged() called with: " + "arg0 = [" + arg0 + "], width = [" + width + "], height = [" + height + "]");
         glViewport(0, 0, width, height);
         createProjectionMatrix(width, height);
         bindMatrix();
@@ -83,10 +87,10 @@ public class TextureRenderer implements GLSurfaceView.Renderer {
     private void prepareData() {
 
         float[] vertices = {
-                -1,  1, 1,   0, 0,
-                -1, -1, 1,   0, 1,
-                1,  1, 1,   1, 0,
-                1, -1, 1,   1, 1,
+                -1, 1, 1, 0, 0,
+                -1, -1, 1, 0, 1,
+                1, 1, 1, 1, 0,
+                1, -1, 1, 1, 1,
         };
 
         vertexData = ByteBuffer
@@ -152,7 +156,7 @@ public class TextureRenderer implements GLSurfaceView.Renderer {
             top *= ratio;
         }
 
-        Matrix.frustumM(mProjectionMatrix, 0, left, right, bottom, top, near, far);
+        Matrix.orthoM(mProjectionMatrix, 0, left, right, bottom, top, near, far);
     }
 
     private void createViewMatrix() {
@@ -182,10 +186,22 @@ public class TextureRenderer implements GLSurfaceView.Renderer {
 
     @Override
     public void onDrawFrame(GL10 arg0) {
-        Log.d(TAG, "onDrawFrame: ");
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
     }
 
+    public void zoomImage(boolean reset, boolean isFistClick) {
+        Log.d(TAG, "zoomImage() called with: " + "reset = [" + reset + "], isFistClick = [" + isFistClick + "]");
+        if(isFistClick){
+            originalModelMatrix = mMatrix;
+        }
+        if (reset) {
+            Matrix.multiplyMM(originalModelMatrix, 0, mProjectionMatrix, 0, mViewMatrix, 0);
+        } else {
+            Matrix.scaleM(mMatrix, 0, 2f, 2f, 0f);
+//        Matrix.translateM(mMatrix, 0, 0.1f, .1f, 0f);
+        }
+        glUniformMatrix4fv(uMatrixLocation, 1, false, mMatrix, 0);
+    }
 }
