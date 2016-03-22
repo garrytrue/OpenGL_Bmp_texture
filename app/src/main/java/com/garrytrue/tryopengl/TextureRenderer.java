@@ -117,19 +117,19 @@ public class TextureRenderer implements GLSurfaceView.Renderer {
     }
 
     private void bindData() {
-        // координаты вершин
+        // vertex coord
         vertexData.position(0);
         glVertexAttribPointer(aPositionLocation, POSITION_COUNT, GL_FLOAT,
                 false, STRIDE, vertexData);
         glEnableVertexAttribArray(aPositionLocation);
 
-        // координаты текстур
+        // texture coord
         vertexData.position(POSITION_COUNT);
         glVertexAttribPointer(aTextureLocation, TEXTURE_COUNT, GL_FLOAT,
                 false, STRIDE, vertexData);
         glEnableVertexAttribArray(aTextureLocation);
 
-        // помещаем текстуру в target 2D юнита 0
+        // put texture to unit 0
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, texture);
 
@@ -204,5 +204,11 @@ public class TextureRenderer implements GLSurfaceView.Renderer {
             Matrix.translateM(mMatrix, 0, -translateToX, -translateToY, 0f);
             glUniformMatrix4fv(uMatrixLocation, 1, false, mMatrix, 0);
         }
+    }
+
+    public void moveTo(float moveToX, float moveToY, int zoom) {
+        final float divider = zoom == 0 ? 100f : 100f * zoom;
+        Matrix.translateM(mMatrix, 0, (moveToX / divider), (moveToY / divider), 0f);
+        glUniformMatrix4fv(uMatrixLocation, 1, false, mMatrix, 0);
     }
 }
