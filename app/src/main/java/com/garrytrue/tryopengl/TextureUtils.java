@@ -52,4 +52,11 @@ public class TextureUtils {
 
         return textureId[0];
     }
+
+    public static float getNormalizedX(float eventX, int viewWidth) {
+        return (eventX / (float) viewWidth) * 2 - 1;
+    }
+    public static float getNormalizedY(float eventY, int viewHeight) {
+        return -((eventY / (float) viewHeight) * 2 - 1);
+    }
 }

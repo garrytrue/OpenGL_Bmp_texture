@@ -191,17 +191,18 @@ public class TextureRenderer implements GLSurfaceView.Renderer {
 
     }
 
-    public void zoomImage(boolean reset, boolean isFistClick) {
+    public void zoomImage(boolean reset, boolean isFistClick, float translateToX, float translateToY) {
         Log.d(TAG, "zoomImage() called with: " + "reset = [" + reset + "], isFistClick = [" + isFistClick + "]");
-        if(isFistClick){
+        if (isFistClick) {
             originalModelMatrix = mMatrix;
         }
         if (reset) {
             Matrix.multiplyMM(originalModelMatrix, 0, mProjectionMatrix, 0, mViewMatrix, 0);
+            glUniformMatrix4fv(uMatrixLocation, 1, false, originalModelMatrix, 0);
         } else {
             Matrix.scaleM(mMatrix, 0, 2f, 2f, 0f);
-//        Matrix.translateM(mMatrix, 0, 0.1f, .1f, 0f);
+            Matrix.translateM(mMatrix, 0, -translateToX, -translateToY, 0f);
+            glUniformMatrix4fv(uMatrixLocation, 1, false, mMatrix, 0);
         }
-        glUniformMatrix4fv(uMatrixLocation, 1, false, mMatrix, 0);
     }
 }

@@ -31,8 +31,14 @@ public class TouchableGLSurfaceView extends GLSurfaceView {
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         Log.d(TAG, "onTouchEvent() called with: " + "event = [" + event + "]");
+        final float normalizedX = TextureUtils.getNormalizedX(event.getX(), getWidth());
+        final float normalizedY = TextureUtils.getNormalizedY(event.getY(), getHeight());
         if (event.getAction() == MotionEvent.ACTION_UP) {
-            makeClickAction();
+            makeClickAction(normalizedX, normalizedY);
+        }
+        if(event.getAction() == MotionEvent.ACTION_MOVE){
+            Log.d(TAG, "onTouchEvent: MOVE_ACTION");
+            Log.d(TAG, "onTouchEvent: NormalizedX " + TextureUtils.getNormalizedX(event.getX(), getWidth()));
         }
         requestRender();
         return true;
@@ -51,22 +57,25 @@ public class TouchableGLSurfaceView extends GLSurfaceView {
         return renderer;
     }
 
-    private void makeClickAction() {
+    private void makeClickAction(final float actionX, final float actionY) {
         Log.d(TAG, "makeClickAction: IsFirstClick "+ isFirstClick);
+        Log.d(TAG, "makeClickAction() called with: " + "actionX = [" + actionX + "], actionY = [" + actionY + "]");
         clickFactor ++;
         queueEvent(new Runnable() {
             @Override
             public void run() {
-                Log.d(TAG, "makeClickAction: IsFirstClick "+ isFirstClick);
-                renderer.zoomImage(clickFactor > 3, isFirstClick.get());
+                renderer.zoomImage(clickFactor > 3, isFirstClick.get(), actionX, actionY);
                 if(isFirstClick.get()){
-                    isFirstClick.getAndSet(false);
+                    isFirstClick.compareAndSet(true, false);
                 }
+                if(clickFactor > 3){
+                    clickFactor = 0;
+                    isFirstClick.compareAndSet(false, true);
+                }
+                Log.d(TAG, "makeClickAction: IsFirstClick "+ isFirstClick);
+                Log.d(TAG, "makeClickAction() called with: " + "actionX = [" + actionX + "], actionY = [" + actionY + "]");
+                Log.d(TAG, "run: ClickFactor " + clickFactor);
             }
         });
-        if(clickFactor > 4){
-            clickFactor = 0;
-            isFirstClick.getAndSet(true);
-        }
     }
 }
