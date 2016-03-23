@@ -87,10 +87,10 @@ public class TextureRenderer implements GLSurfaceView.Renderer {
     private void prepareData() {
 
         float[] vertices = {
-                -1, 1, 1, 0, 0,
-                -1, -1, 1, 0, 1,
-                1, 1, 1, 1, 0,
-                1, -1, 1, 1, 1,
+                0, 800, 0, 0, 0,
+                0, 0, 0, 0, 1,
+                500, 800, 0, 1, 0,
+                500, 0, 0, 1, 1,
         };
 
         vertexData = ByteBuffer
@@ -140,16 +140,18 @@ public class TextureRenderer implements GLSurfaceView.Renderer {
     private void createProjectionMatrix(int width, int height) {
         Log.d(TAG, "createProjectionMatrix() called with: " + "width = [" + width + "], height = [" + height + "]");
         float ratio = 1;
-        float left = -1;
-        float right = 1;
-        float bottom = -1;
-        float top = 1;
-        float near = 6;
-        float far = 12;
+        float left = 0;
+        float right = 500;
+        float bottom = -200;
+        float top = 800;
+        float near = -5;
+        float far = 20 ;
         if (width > height) {
             ratio = (float) width / height;
             left *= ratio;
             right *= ratio;
+            right* = 1000
+            bottom = 0;
         } else {
             ratio = (float) height / width;
             bottom *= ratio;
@@ -163,7 +165,7 @@ public class TextureRenderer implements GLSurfaceView.Renderer {
         // точка положения камеры
         float eyeX = 0;
         float eyeY = 0;
-        float eyeZ = 7;
+        float eyeZ = 10;
 
         // точка направления камеры
         float centerX = 0;
@@ -172,7 +174,7 @@ public class TextureRenderer implements GLSurfaceView.Renderer {
 
         // up-вектор
         float upX = 0;
-        float upY = 5;
+        float upY = 1;
         float upZ = 0;
 
         Matrix.setLookAtM(mViewMatrix, 0, eyeX, eyeY, eyeZ, centerX, centerY, centerZ, upX, upY, upZ);
@@ -210,5 +212,8 @@ public class TextureRenderer implements GLSurfaceView.Renderer {
         final float divider = zoom == 0 ? 100f : 100f * zoom;
         Matrix.translateM(mMatrix, 0, (moveToX / divider), (moveToY / divider), 0f);
         glUniformMatrix4fv(uMatrixLocation, 1, false, mMatrix, 0);
+    }
+    public void drawLocation(float x, float y){
+
     }
 }

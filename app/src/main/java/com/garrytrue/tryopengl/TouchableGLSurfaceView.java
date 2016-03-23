@@ -4,8 +4,10 @@ import android.content.Context;
 import android.opengl.GLSurfaceView;
 import android.util.AttributeSet;
 import android.util.Log;
+import android.view.DragEvent;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
+import android.view.ViewConfiguration;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -31,6 +33,10 @@ public class TouchableGLSurfaceView extends GLSurfaceView {
         init();
     }
 
+    @Override
+    public boolean dispatchTouchEvent(MotionEvent event) {
+        return super.dispatchTouchEvent(event);
+    }
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
@@ -58,6 +64,7 @@ public class TouchableGLSurfaceView extends GLSurfaceView {
         }
         if (event.getAction() == MotionEvent.ACTION_UP && previosEvent != null) {
             makeClickAction(normalizedX, normalizedY);
+            renderer.drawLocation(normalizedX, normalizedY);
         }
         requestRender();
         if(previosEvent != event){
@@ -70,7 +77,6 @@ public class TouchableGLSurfaceView extends GLSurfaceView {
     }
 
     private void init() {
-        Log.d(TAG, "init: ");
         renderer = new TextureRenderer();
         setEGLContextClientVersion(2);
         setPreserveEGLContextOnPause(true);
