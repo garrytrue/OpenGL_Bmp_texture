@@ -1,4 +1,4 @@
-package com.garrytrue.tryopengl;
+package com.garrytrue.tryopengl.primirives;
 
 import android.util.Log;
 

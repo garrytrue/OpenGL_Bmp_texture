@@ -1,8 +1,10 @@
-package com.garrytrue.tryopengl;
+package com.garrytrue.tryopengl.utils;
 
 import android.content.res.AssetManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+
+import com.garrytrue.tryopengl.OpenGLApp;
 
 import java.io.IOException;
 import java.io.InputStream;

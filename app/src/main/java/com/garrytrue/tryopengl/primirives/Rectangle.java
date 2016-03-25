@@ -1,4 +1,4 @@
-package com.garrytrue.tryopengl;
+package com.garrytrue.tryopengl.primirives;
 
 import android.util.Log;
 
@@ -7,7 +7,6 @@ import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
 
 import static android.opengl.GLES20.GL_FLOAT;
-import static android.opengl.GLES20.GL_TRIANGLES;
 import static android.opengl.GLES20.GL_TRIANGLE_STRIP;
 import static android.opengl.GLES20.glDrawArrays;
 import static android.opengl.GLES20.glEnableVertexAttribArray;

@@ -1,9 +1,17 @@
-package com.garrytrue.tryopengl;
+package com.garrytrue.tryopengl.renderers;
 
 import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
 import android.opengl.Matrix;
 import android.util.Log;
+
+import com.garrytrue.tryopengl.actions.GLAction;
+import com.garrytrue.tryopengl.actions.GLMapAction;
+import com.garrytrue.tryopengl.actions.GLUserAction;
+import com.garrytrue.tryopengl.gl_objects.GLPointer;
+import com.garrytrue.tryopengl.primirives.Point;
+import com.garrytrue.tryopengl.utils.Shaders;
+import com.garrytrue.tryopengl.utils.TextureUtils;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -18,6 +26,7 @@ import static android.opengl.GLES20.GL_DEPTH_TEST;
 import static android.opengl.GLES20.GL_FLOAT;
 import static android.opengl.GLES20.GL_TEXTURE0;
 import static android.opengl.GLES20.GL_TEXTURE_2D;
+import static android.opengl.GLES20.GL_TRIANGLES;
 import static android.opengl.GLES20.GL_TRIANGLE_STRIP;
 import static android.opengl.GLES20.glActiveTexture;
 import static android.opengl.GLES20.glBindTexture;
@@ -43,37 +52,43 @@ public class TextureRenderer implements GLSurfaceView.Renderer {
     private static final int TEXTURE_COUNT = 2;
     private static final int STRIDE = (POSITION_COUNT
             + TEXTURE_COUNT) * 4;
+    private GLAction action;
 
     private FloatBuffer vertexData;
+    private GLPointer mGLPointer = new GLPointer();
 
 
     private int aPositionLocation;
     private int aTextureLocation;
     private int uTextureUnitLocation;
     private int uMatrixLocation;
+    private int aColorLocation;
 
     private int programId;
 
     private float[] mProjectionMatrix = new float[16];
     private float[] mViewMatrix = new float[16];
-    private float[] mMatrix = new float[16];
-    private float[] originalModelMatrix = new float[16];
+    private float[] mModelMatrix = new float[16];
+    private float[] mResultMatrix = new float[16];
+    private float[] tempZoomedMatrix = new float[16];
+    private float[] tempMapMatrix = new float[16];
+    private float[] tempPointerMatrix = new float[16];
 
 
     private int texture;
-
 
     @Override
     public void onSurfaceCreated(GL10 arg0, EGLConfig arg1) {
         Log.d(TAG, "onSurfaceCreated: ");
         glClearColor(1f, 1f, 1f, 1f);
         glEnable(GL_DEPTH_TEST);
-
         createAndUseProgram();
         getLocations();
         prepareData();
         bindData();
         createViewMatrix();
+        initTempMatrix();
+        mGLPointer.updatePointerPos(0, 0);
     }
 
     @Override
@@ -87,11 +102,17 @@ public class TextureRenderer implements GLSurfaceView.Renderer {
     private void prepareData() {
 
         float[] vertices = {
-                -1, 1, 1, 0, 0,
-                -1, -1, 1, 0, 1,
-                1, 1, 1, 1, 0,
-                1, -1, 1, 1, 1,
+//                floor rectangle
+                -1, 1, 0, 0, 0,
+                -1, -1, 0, 0, 1,
+                1, 1, 0, 1, 0,
+                1, -1, 0, 1, 1,
+//                user location rectangle
+                -.05f, .05f, 0f, 0, 0,
+                .05f, .05f, 0f, 0, 0,
+                0f, 0f, 0f, 0, 0,
         };
+
 
         vertexData = ByteBuffer
                 .allocateDirect(vertices.length * 4)
@@ -101,6 +122,7 @@ public class TextureRenderer implements GLSurfaceView.Renderer {
 
         texture = TextureUtils.loadTexture();
     }
+
 
     private void createAndUseProgram() {
         int vertexShaderId = Shaders.makeShader(Shaders.TEXTURE_VERTEX_SHADER, GLES20.GL_VERTEX_SHADER);
@@ -114,6 +136,8 @@ public class TextureRenderer implements GLSurfaceView.Renderer {
         aTextureLocation = glGetAttribLocation(programId, "a_Texture");
         uTextureUnitLocation = glGetUniformLocation(programId, "u_TextureUnit");
         uMatrixLocation = glGetUniformLocation(programId, "u_Matrix");
+        aColorLocation = glGetAttribLocation(programId, "a_Color");
+        Log.d(TAG, "getLocations: Color_Location " + aColorLocation);
     }
 
     private void bindData() {
@@ -122,6 +146,7 @@ public class TextureRenderer implements GLSurfaceView.Renderer {
         glVertexAttribPointer(aPositionLocation, POSITION_COUNT, GL_FLOAT,
                 false, STRIDE, vertexData);
         glEnableVertexAttribArray(aPositionLocation);
+
 
         // texture coord
         vertexData.position(POSITION_COUNT);
@@ -132,9 +157,10 @@ public class TextureRenderer implements GLSurfaceView.Renderer {
         // put texture to unit 0
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, texture);
-
         // юнит текстуры
         glUniform1i(uTextureUnitLocation, 0);
+//        color unit
+        GLES20.glEnableVertexAttribArray(aColorLocation);
     }
 
     private void createProjectionMatrix(int width, int height) {
@@ -144,8 +170,8 @@ public class TextureRenderer implements GLSurfaceView.Renderer {
         float right = 1;
         float bottom = -1;
         float top = 1;
-        float near = 6;
-        float far = 12;
+        float near = 0;
+        float far = 20;
         if (width > height) {
             ratio = (float) width / height;
             left *= ratio;
@@ -163,7 +189,7 @@ public class TextureRenderer implements GLSurfaceView.Renderer {
         // точка положения камеры
         float eyeX = 0;
         float eyeY = 0;
-        float eyeZ = 7;
+        float eyeZ = 1;
 
         // точка направления камеры
         float centerX = 0;
@@ -172,7 +198,7 @@ public class TextureRenderer implements GLSurfaceView.Renderer {
 
         // up-вектор
         float upX = 0;
-        float upY = 5;
+        float upY = 1;
         float upZ = 0;
 
         Matrix.setLookAtM(mViewMatrix, 0, eyeX, eyeY, eyeZ, centerX, centerY, centerZ, upX, upY, upZ);
@@ -180,35 +206,104 @@ public class TextureRenderer implements GLSurfaceView.Renderer {
 
 
     private void bindMatrix() {
-        Matrix.multiplyMM(mMatrix, 0, mProjectionMatrix, 0, mViewMatrix, 0);
-        glUniformMatrix4fv(uMatrixLocation, 1, false, mMatrix, 0);
+        Matrix.multiplyMM(mResultMatrix, 0, mViewMatrix, 0, mModelMatrix, 0);
+        Matrix.multiplyMM(mResultMatrix, 0, mProjectionMatrix, 0, mResultMatrix, 0);
+        glUniformMatrix4fv(uMatrixLocation, 1, false, mResultMatrix, 0);
+    }
+
+    private void initTempMatrix() {
+        copyMatrix(mModelMatrix, tempMapMatrix);
+        copyMatrix(mModelMatrix, tempPointerMatrix);
     }
 
     @Override
     public void onDrawFrame(GL10 arg0) {
+        Log.d(TAG, "onDrawFrame: ");
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        drawPointer();
+        drawMap();
+    }
+
+    private void drawMap() {
+        Matrix.setIdentityM(mModelMatrix, 0);
+        handleUserAction(false);
+        bindMatrix();
         glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
     }
 
-    public void zoomImage(boolean reset, boolean isFistClick, float translateToX, float translateToY) {
-        Log.d(TAG, "zoomImage() called with: " + "reset = [" + reset + "], isFistClick = [" + isFistClick + "]");
-        if (isFistClick) {
-            originalModelMatrix = mMatrix;
-        }
+    private void drawPointer() {
+        Matrix.setIdentityM(mModelMatrix, 0);
+        handleUserAction(true);
+        bindMatrix();
+        mGLPointer.drawObject(mModelMatrix);
+        glDrawArrays(GL_TRIANGLES, 4, 3);
+    }
+
+    public void scaleMap(boolean reset, float translateToX, float translateToY) {
+        Log.d(TAG, "scaleMap() called with: " + "reset = [" + reset + "]");
         if (reset) {
-            Matrix.multiplyMM(originalModelMatrix, 0, mProjectionMatrix, 0, mViewMatrix, 0);
-            glUniformMatrix4fv(uMatrixLocation, 1, false, originalModelMatrix, 0);
+            Matrix.setIdentityM(mModelMatrix, 0);
         } else {
-            Matrix.scaleM(mMatrix, 0, 2f, 2f, 0f);
-            Matrix.translateM(mMatrix, 0, -translateToX, -translateToY, 0f);
-            glUniformMatrix4fv(uMatrixLocation, 1, false, mMatrix, 0);
+            Matrix.scaleM(mModelMatrix, 0, 2f, 2f, 0f);
+            Matrix.translateM(mModelMatrix, 0, -translateToX, -translateToY, 0f);
         }
     }
 
-    public void moveTo(float moveToX, float moveToY, int zoom) {
-        final float divider = zoom == 0 ? 100f : 100f * zoom;
-        Matrix.translateM(mMatrix, 0, (moveToX / divider), (moveToY / divider), 0f);
-        glUniformMatrix4fv(uMatrixLocation, 1, false, mMatrix, 0);
+    public void  moveMap(float moveToX, float moveToY, int zoom) {
+        Log.d(TAG, "moveMap() called with: " + "moveToX = [" + moveToX + "], moveToY = [" + moveToY + "], zoom = [" + zoom + "]");
+        final float divider = zoom == 0 ? 1f : 1f * zoom;
+        Matrix.translateM(mModelMatrix, 0, (moveToX / divider), (moveToY / divider), 0f);
+    }
+
+    public void movePointerToPosition(float x, float y) {
+        Log.d(TAG, "movePointerToPosition() called with: " + "x = [" + x + "], y = [" + y + "]");
+//        Matrix.translateM(mModelMatrix,0, mGLPointer.getCurrentX(), mGLPointer.getCurrentX(), 0f);
+        Matrix.translateM(mModelMatrix, 0, x, y, 0f);
+        mGLPointer.updatePointerPos(x, y);
+
+    }
+
+    private void copyMatrix(float[] source, float[] dest) {
+        System.arraycopy(source, 0, dest, 0, 16);
+    }
+
+    private boolean isEquals(float[] matrix, float[] anotherMatrix) {
+        if (matrix.length != anotherMatrix.length) {
+            return false;
+        }
+        for (int i = 0; i < matrix.length; i++) {
+            if (matrix[i] != anotherMatrix[i]) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public void setAction(GLAction action) {
+        this.action = action;
+    }
+
+    private void handleUserAction(boolean isPointer) {
+        if (action != null) {
+            final int actionType = action.getActionType();
+            if (isPointer) {
+//                Make Action only for pointer
+                if (actionType == GLUserAction.ON_USER_LOCATION_ACTION) {
+                    Log.d(TAG, "handleUserAction: Make User LocationAction");
+                    movePointerToPosition(action.getX(), action.getY());
+                }
+            } else {
+//                Make Action only for camera
+                if (actionType == GLMapAction.SCALE_ACTION) {
+                    Log.d(TAG, "handleUserAction: Make Scale action");
+                    scaleMap(((GLMapAction) action).isReset(), action.getX(), action.getY());
+                }
+                if (actionType == GLMapAction.MOVE_ACTION) {
+                    Log.d(TAG, "handleUserAction: Make Move action");
+                    moveMap(action.getX(), action.getY(), 0);
+                }
+            }
+        }
     }
 }

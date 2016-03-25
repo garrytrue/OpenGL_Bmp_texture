@@ -1,7 +1,12 @@
-package com.garrytrue.tryopengl;
+package com.garrytrue.tryopengl.renderers;
 
 import android.opengl.GLES20;
 import android.util.Log;
+
+import com.garrytrue.tryopengl.primirives.Rectangle;
+import com.garrytrue.tryopengl.primirives.Shapes;
+import com.garrytrue.tryopengl.utils.Shaders;
+import com.garrytrue.tryopengl.utils.TextureUtils;
 
 import java.util.ArrayList;
 

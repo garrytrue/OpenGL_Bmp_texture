@@ -1,4 +1,4 @@
-package com.garrytrue.tryopengl;
+package com.garrytrue.tryopengl.primirives;
 
 /**
  * Created by tiv on 21.03.2016.

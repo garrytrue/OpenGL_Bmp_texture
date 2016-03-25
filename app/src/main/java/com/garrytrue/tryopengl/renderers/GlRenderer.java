@@ -1,6 +1,5 @@
-package com.garrytrue.tryopengl;
+package com.garrytrue.tryopengl.renderers;
 
-import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
 import android.util.Log;
 

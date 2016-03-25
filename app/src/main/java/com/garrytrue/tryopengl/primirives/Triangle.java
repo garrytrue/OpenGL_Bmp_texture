@@ -1,4 +1,4 @@
-package com.garrytrue.tryopengl;
+package com.garrytrue.tryopengl.primirives;
 
 import android.util.Log;
 
@@ -11,7 +11,7 @@ import java.nio.FloatBuffer;
 /**
  * Created by tiv on 21.03.2016.
  */
-public class Triangle  implements Shapes{
+public class Triangle  implements Shapes {
     private static final String TAG = Triangle.class.getSimpleName();
     float[] vertices = {
             -0.8f, 0.8f,

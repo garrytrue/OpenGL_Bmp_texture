@@ -1,4 +1,4 @@
-package com.garrytrue.tryopengl;
+package com.garrytrue.tryopengl.utils;
 
 import android.graphics.Bitmap;
 import android.opengl.GLUtils;

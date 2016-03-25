@@ -1,12 +1,10 @@
 package com.garrytrue.tryopengl;
 
 import android.app.ActivityManager;
-import android.opengl.GLSurfaceView;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.view.MotionEvent;
-import android.view.SurfaceView;
-import android.view.View;
+
+import com.garrytrue.tryopengl.custom_views.TouchableGLSurfaceView;
 
 public class MainActivity extends AppCompatActivity {
     private TouchableGLSurfaceView surfaceView;
