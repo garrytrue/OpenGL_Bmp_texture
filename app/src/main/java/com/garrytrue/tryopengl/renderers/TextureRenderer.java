@@ -50,8 +50,9 @@ public class TextureRenderer implements GLSurfaceView.Renderer {
     private static final String TAG = TextureRenderer.class.getSimpleName();
     private final static int POSITION_COUNT = 3;
     private static final int TEXTURE_COUNT = 2;
+    private static final int COLOR_COUNT = 3;
     private static final int STRIDE = (POSITION_COUNT
-            + TEXTURE_COUNT) * 4;
+            + TEXTURE_COUNT + COLOR_COUNT) * 4;
     private GLAction action;
 
     private FloatBuffer vertexData;
@@ -97,24 +98,31 @@ public class TextureRenderer implements GLSurfaceView.Renderer {
 
     private void prepareData() {
 
-        float[] vertices = {
+//        VERTICES_FORMAT
+//        X, Y, Z,   S, T,   R, G, B
+
+//        X, Y, Z - coordinate of current vertex
+//        S, T - coordinate of current texture vertex
+//        R, G, B - color of current vertex
+
+        float[] verticesOfObjects = {
 //                floor rectangle
-                -1, 1, 0, 0, 0,
-                -1, -1, 0, 0, 1,
-                1, 1, 0, 1, 0,
-                1, -1, 0, 1, 1,
+               /*X,Y,Z*/ -1, 1, 0,  /*S,T*/ 0, 0,  /*R,G,B*/ 1, 1, 1,
+                -1, -1, 0,  0, 1,  1, 1, 1,
+                1, 1, 0,  1, 0,  1, 1, 1,
+                1, -1, 0,  1, 1,  1, 1, 1,
 //                user location rectangle
-                -.05f, .05f, 0f, 0, 0,
-                .05f, .05f, 0f, 0, 0,
-                0f, 0f, 0f, 0, 0,
+                -.05f, .05f, 0f,  0, 0,  1, 0, 0,
+                .05f, .05f, 0f,  0, 0,  1, 0, 0,
+                0f, 0f, 0f,  0, 0,  1, 0, 0
         };
 
 
         vertexData = ByteBuffer
-                .allocateDirect(vertices.length * 4)
+                .allocateDirect(verticesOfObjects.length * 4)
                 .order(ByteOrder.nativeOrder())
                 .asFloatBuffer();
-        vertexData.put(vertices);
+        vertexData.put(verticesOfObjects);
 
         texture = TextureUtils.loadTexture();
     }
@@ -143,6 +151,10 @@ public class TextureRenderer implements GLSurfaceView.Renderer {
                 false, STRIDE, vertexData);
         glEnableVertexAttribArray(aPositionLocation);
 
+//        color unit
+        vertexData.position(POSITION_COUNT + TEXTURE_COUNT);
+        glVertexAttribPointer(aColorLocation, COLOR_COUNT, GL_FLOAT, false, STRIDE, vertexData);
+        glEnableVertexAttribArray(aColorLocation);
 
         // texture coord
         vertexData.position(POSITION_COUNT);
@@ -150,13 +162,13 @@ public class TextureRenderer implements GLSurfaceView.Renderer {
                 false, STRIDE, vertexData);
         glEnableVertexAttribArray(aTextureLocation);
 
+
         // put texture to unit 0
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, texture);
         // юнит текстуры
         glUniform1i(uTextureUnitLocation, 0);
-//        color unit
-        glEnableVertexAttribArray(aColorLocation);
+
     }
 
     private void createProjectionMatrix(int width, int height) {
@@ -243,7 +255,7 @@ public class TextureRenderer implements GLSurfaceView.Renderer {
         }
     }
 
-    public void  moveMap(float moveToX, float moveToY, int zoom) {
+    public void moveMap(float moveToX, float moveToY, int zoom) {
         Log.d(TAG, "moveMap() called with: " + "moveToX = [" + moveToX + "], moveToY = [" + moveToY + "], zoom = [" + zoom + "]");
         final float divider = zoom == 0 ? 1f : 1f * zoom;
         Matrix.translateM(mModelMatrix, 0, (moveToX / divider), (moveToY / divider), 0f);
