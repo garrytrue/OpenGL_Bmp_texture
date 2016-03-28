@@ -10,6 +10,8 @@ import android.view.MotionEvent;
 
 import com.garrytrue.tryopengl.actions.GLMapAction;
 import com.garrytrue.tryopengl.actions.GLUserAction;
+import com.garrytrue.tryopengl.helpers.LocationListener;
+import com.garrytrue.tryopengl.helpers.UserLocationEmulator;
 import com.garrytrue.tryopengl.renderers.TextureRenderer;
 import com.garrytrue.tryopengl.utils.TextureUtils;
 
@@ -21,6 +23,7 @@ public class TouchableGLSurfaceView extends GLSurfaceView implements GestureDete
     private static boolean isNeedReset = false;
     private TextureRenderer renderer;
     private GestureDetectorCompat gestureDetector;
+    private UserLocationEmulator locationEmulator;
 
     public TouchableGLSurfaceView(Context context) {
         super(context);
@@ -49,6 +52,16 @@ public class TouchableGLSurfaceView extends GLSurfaceView implements GestureDete
         gestureDetector = new GestureDetectorCompat(getContext(), this);
         gestureDetector.setOnDoubleTapListener(this);
     }
+    private void startLocationEmulation(){
+       locationEmulator = new UserLocationEmulator(new LocationListener() {
+            @Override
+            public void onLocationChanged(float x, float y) {
+                renderer.setAction(GLUserAction.makeAction(GLUserAction.ON_USER_LOCATION_ACTION, x, y));
+                requestRender();
+            }
+        });
+        locationEmulator.start();
+    }
 
     public TextureRenderer getRenderer() {
         return renderer;
@@ -62,6 +75,7 @@ public class TouchableGLSurfaceView extends GLSurfaceView implements GestureDete
         final float normalizedY = TextureUtils.getNormalizedY(e.getY(), getHeight());
         renderer.setAction(GLUserAction.makeAction(GLUserAction.ON_USER_LOCATION_ACTION, normalizedX, normalizedY));
         requestRender();
+        startLocationEmulation();
         return true;
     }
 
@@ -79,6 +93,7 @@ public class TouchableGLSurfaceView extends GLSurfaceView implements GestureDete
             final float normalizedY = TextureUtils.getNormalizedY(e.getY(), getHeight());
             renderer.setAction(GLMapAction.makeMapAction(GLMapAction.SCALE_ACTION, normalizedX, normalizedY, isNeedReset));
             isNeedReset = !isNeedReset;
+            locationEmulator.stopEmulation();
             requestRender();
         }
         return true;

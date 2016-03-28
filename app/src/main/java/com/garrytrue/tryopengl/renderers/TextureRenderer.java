@@ -9,7 +9,6 @@ import com.garrytrue.tryopengl.actions.GLAction;
 import com.garrytrue.tryopengl.actions.GLMapAction;
 import com.garrytrue.tryopengl.actions.GLUserAction;
 import com.garrytrue.tryopengl.gl_objects.GLPointer;
-import com.garrytrue.tryopengl.primirives.Point;
 import com.garrytrue.tryopengl.utils.Shaders;
 import com.garrytrue.tryopengl.utils.TextureUtils;
 
@@ -26,18 +25,19 @@ import static android.opengl.GLES20.GL_DEPTH_TEST;
 import static android.opengl.GLES20.GL_FLOAT;
 import static android.opengl.GLES20.GL_TEXTURE0;
 import static android.opengl.GLES20.GL_TEXTURE_2D;
-import static android.opengl.GLES20.GL_TRIANGLES;
 import static android.opengl.GLES20.GL_TRIANGLE_STRIP;
 import static android.opengl.GLES20.glActiveTexture;
 import static android.opengl.GLES20.glBindTexture;
 import static android.opengl.GLES20.glClear;
 import static android.opengl.GLES20.glClearColor;
+import static android.opengl.GLES20.glDisable;
 import static android.opengl.GLES20.glDrawArrays;
 import static android.opengl.GLES20.glEnable;
 import static android.opengl.GLES20.glEnableVertexAttribArray;
 import static android.opengl.GLES20.glGetAttribLocation;
 import static android.opengl.GLES20.glGetUniformLocation;
 import static android.opengl.GLES20.glUniform1i;
+import static android.opengl.GLES20.glUniform4f;
 import static android.opengl.GLES20.glUniformMatrix4fv;
 import static android.opengl.GLES20.glUseProgram;
 import static android.opengl.GLES20.glVertexAttribPointer;
@@ -70,9 +70,6 @@ public class TextureRenderer implements GLSurfaceView.Renderer {
     private float[] mViewMatrix = new float[16];
     private float[] mModelMatrix = new float[16];
     private float[] mResultMatrix = new float[16];
-    private float[] tempZoomedMatrix = new float[16];
-    private float[] tempMapMatrix = new float[16];
-    private float[] tempPointerMatrix = new float[16];
 
 
     private int texture;
@@ -87,7 +84,6 @@ public class TextureRenderer implements GLSurfaceView.Renderer {
         prepareData();
         bindData();
         createViewMatrix();
-        initTempMatrix();
         mGLPointer.updatePointerPos(0, 0);
     }
 
@@ -160,7 +156,7 @@ public class TextureRenderer implements GLSurfaceView.Renderer {
         // юнит текстуры
         glUniform1i(uTextureUnitLocation, 0);
 //        color unit
-        GLES20.glEnableVertexAttribArray(aColorLocation);
+        glEnableVertexAttribArray(aColorLocation);
     }
 
     private void createProjectionMatrix(int width, int height) {
@@ -189,7 +185,7 @@ public class TextureRenderer implements GLSurfaceView.Renderer {
         // точка положения камеры
         float eyeX = 0;
         float eyeY = 0;
-        float eyeZ = 1;
+        float eyeZ = 0.5f;
 
         // точка направления камеры
         float centerX = 0;
@@ -211,10 +207,6 @@ public class TextureRenderer implements GLSurfaceView.Renderer {
         glUniformMatrix4fv(uMatrixLocation, 1, false, mResultMatrix, 0);
     }
 
-    private void initTempMatrix() {
-        copyMatrix(mModelMatrix, tempMapMatrix);
-        copyMatrix(mModelMatrix, tempPointerMatrix);
-    }
 
     @Override
     public void onDrawFrame(GL10 arg0) {
@@ -233,11 +225,12 @@ public class TextureRenderer implements GLSurfaceView.Renderer {
     }
 
     private void drawPointer() {
+        glDisable(GL_TEXTURE_2D);
         Matrix.setIdentityM(mModelMatrix, 0);
         handleUserAction(true);
         bindMatrix();
-        mGLPointer.drawObject(mModelMatrix);
-        glDrawArrays(GL_TRIANGLES, 4, 3);
+        glUniform4f(aColorLocation, 1.0f, 1.0f, 0.0f, 1.0f);
+        mGLPointer.drawObject();
     }
 
     public void scaleMap(boolean reset, float translateToX, float translateToY) {
@@ -258,8 +251,9 @@ public class TextureRenderer implements GLSurfaceView.Renderer {
 
     public void movePointerToPosition(float x, float y) {
         Log.d(TAG, "movePointerToPosition() called with: " + "x = [" + x + "], y = [" + y + "]");
-//        Matrix.translateM(mModelMatrix,0, mGLPointer.getCurrentX(), mGLPointer.getCurrentX(), 0f);
-        Matrix.translateM(mModelMatrix, 0, x, y, 0f);
+        mGLPointer.updatePointerPos(x, y);
+        Log.d(TAG, "movePointerToPosition: Move to x = [ " + mGLPointer.getCurrentX() + " ], y = [ " + mGLPointer.getCurrentY() + "]");
+        Matrix.translateM(mModelMatrix, 0, mGLPointer.getCurrentX(), mGLPointer.getCurrentY(), 0f);
         mGLPointer.updatePointerPos(x, y);
 
     }
@@ -292,6 +286,11 @@ public class TextureRenderer implements GLSurfaceView.Renderer {
                 if (actionType == GLUserAction.ON_USER_LOCATION_ACTION) {
                     Log.d(TAG, "handleUserAction: Make User LocationAction");
                     movePointerToPosition(action.getX(), action.getY());
+                }
+//                If user move map, we need move map with pointer
+                if (actionType == GLMapAction.MOVE_ACTION) {
+                    Log.d(TAG, "handleUserAction: Make Move action");
+                    moveMap(action.getX(), action.getY(), 0);
                 }
             } else {
 //                Make Action only for camera

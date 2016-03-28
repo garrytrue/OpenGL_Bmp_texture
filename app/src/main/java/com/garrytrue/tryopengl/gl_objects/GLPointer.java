@@ -2,6 +2,9 @@ package com.garrytrue.tryopengl.gl_objects;
 
 import android.opengl.Matrix;
 
+import static android.opengl.GLES20.GL_TRIANGLES;
+import static android.opengl.GLES20.glDrawArrays;
+
 /**
  * Created by tiv on 25.03.2016.
  */
@@ -22,7 +25,7 @@ public class GLPointer implements GLObject {
     }
 
     @Override
-    public void drawObject(float[] matrix) {
-        Matrix.translateM(matrix,0, currentX,currentY, 0f);
+    public void drawObject() {
+        glDrawArrays(GL_TRIANGLES, 4, 3);
     }
 }
