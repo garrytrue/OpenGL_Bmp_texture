@@ -51,6 +51,7 @@ public class TouchableGLSurfaceView extends GLSurfaceView implements GestureDete
         setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
         gestureDetector = new GestureDetectorCompat(getContext(), this);
         gestureDetector.setOnDoubleTapListener(this);
+        startLocationEmulation();
     }
     private void startLocationEmulation(){
        locationEmulator = new UserLocationEmulator(new LocationListener() {
@@ -75,7 +76,6 @@ public class TouchableGLSurfaceView extends GLSurfaceView implements GestureDete
         final float normalizedY = TextureUtils.getNormalizedY(e.getY(), getHeight());
         renderer.setAction(GLUserAction.makeAction(GLUserAction.ON_USER_LOCATION_ACTION, normalizedX, normalizedY));
         requestRender();
-        startLocationEmulation();
         return true;
     }
 

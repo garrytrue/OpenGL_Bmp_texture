@@ -28,8 +28,8 @@ public class UserLocationEmulator extends Thread {
         }
     }
     public void stopEmulation(){
+        Log.d(TAG, "stopEmulation: ");
         needEmulate = false;
-        interrupt();
     }
     private float randomLocation(){
         int sign = random.nextInt(7) % 2;
@@ -37,4 +37,6 @@ public class UserLocationEmulator extends Thread {
         float pos =  random.nextFloat() * 2 - 1;
      return sign == 0 ? pos : pos;
     }
+
+
 }
