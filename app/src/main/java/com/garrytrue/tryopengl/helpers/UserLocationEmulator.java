@@ -24,19 +24,22 @@ public class UserLocationEmulator extends Thread {
     public void run() {
         while (needEmulate) {
             SystemClock.sleep(5000);
-            listener.onLocationChanged(randomLocation(), randomLocation());
+            int randX = randomLocation();
+            int randY = randomLocation();
+            Log.d(TAG, "run: [ X = " + randX + ", Y = " + randY + " ]");
+            listener.onLocationChanged(randX, randY);
         }
     }
     public void stopEmulation(){
         Log.d(TAG, "stopEmulation: ");
         needEmulate = false;
     }
-    private float randomLocation(){
-        int sign = random.nextInt(7) % 2;
-        Log.d(TAG, "randomLocation: " + sign);
-        float pos =  random.nextFloat() * 2 - 1;
-     return sign == 0 ? pos : pos;
+    private int randomLocation() {
+//        int sign = random.nextInt(7) % 2;
+//        Log.d(TAG, "randomLocation: " + sign);
+//        float pos =  random.nextFloat() * 2 - 1;
+        int rand = random.nextInt((65 - 10) + 1) + 10;
+        return random.nextInt((65 - 10) + 1) + 10;
     }
-
 
 }

@@ -58,7 +58,8 @@ public class TextureRenderer implements GLSurfaceView.Renderer {
     private FloatBuffer vertexData;
     private GLPointer mGLPointer = new GLPointer();
 
-
+    private float floorX;
+    private float floorY;
     private int aPositionLocation;
     private int aTextureLocation;
     private int uTextureUnitLocation;
@@ -74,6 +75,11 @@ public class TextureRenderer implements GLSurfaceView.Renderer {
 
 
     private int texture;
+
+    public TextureRenderer(float floorX, float floorY) {
+        this.floorX = floorX;
+        this.floorY = floorY;
+    }
 
     @Override
     public void onSurfaceCreated(GL10 arg0, EGLConfig arg1) {
@@ -107,14 +113,14 @@ public class TextureRenderer implements GLSurfaceView.Renderer {
 
         float[] verticesOfObjects = {
 //                floor rectangle
-               /*X,Y,Z*/ -1, 1, 0,  /*S,T*/ 0, 0,  /*R,G,B*/ 1, 1, 1,
-                -1, -1, 0,  0, 1,  1, 1, 1,
-                1, 1, 0,  1, 0,  1, 1, 1,
-                1, -1, 0,  1, 1,  1, 1, 1,
+               /*X,Y,Z*/ 0, 0, 0,  /*S,T*/ 0, 0,  /*R,G,B*/ 1, 1, 1,
+                0, floorY, 0,  0, 1,  1, 1, 1,
+                floorX, 0, 0,  1, 0,  1, 1, 1,
+                floorX, floorY, 0,  1, 1,  1, 1, 1,
 //                user location rectangle
-                -.05f, .05f, 0f,  0, 0,  1, 0, 0,
-                .05f, .05f, 0f,  0, 0,  1, 0, 0,
-                0f, 0f, 0f,  0, 0,  1, 0, 0
+                ((floorX/2f)+2f), ((floorY/2f)-2f), 0f,  0, 0,  1, 0, 0,
+                ((floorX/2f)-2f) , ((floorY/2f)-2f), 0f,  0, 0,  1, 0, 0,
+                floorX/2f, floorY/2f, 0f,  0, 0,  1, 0, 0
         };
 
 
@@ -174,12 +180,12 @@ public class TextureRenderer implements GLSurfaceView.Renderer {
     private void createProjectionMatrix(int width, int height) {
         Log.d(TAG, "createProjectionMatrix() called with: " + "width = [" + width + "], height = [" + height + "]");
         float ratio = 1;
-        float left = -1;
-        float right = 1;
-        float bottom = -1;
-        float top = 1;
+        float left = 0;
+        float right = 78;
+        float bottom = 60;
+        float top = 0;
         float near = 0;
-        float far = 20;
+        float far = 200;
         if (width > height) {
             ratio = (float) width / height;
             left *= ratio;

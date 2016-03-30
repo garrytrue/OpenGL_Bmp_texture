@@ -44,7 +44,7 @@ public class TouchableGLSurfaceView extends GLSurfaceView implements GestureDete
 
     private void init() {
         Log.d(TAG, "init: ");
-        renderer = new TextureRenderer();
+        renderer = new TextureRenderer(78, 60);
         setEGLContextClientVersion(2);
         setPreserveEGLContextOnPause(true);
         setRenderer(renderer);
